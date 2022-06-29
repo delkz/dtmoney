@@ -3,8 +3,9 @@ import { Container,RadioBox,TransactionTypeContainer } from "./styles";
 import closeImg from "../../assets/close.svg";
 import incomeImg from '../../assets/income.svg';
 import outcomeImg from '../../assets/outcome.svg';
-import { FormEvent, useState } from "react";
+import { FormEvent, useContext, useState } from "react";
 import { api } from "../../services/api";
+import { TransactionsContext } from "../../TransactionsContext";
 interface newTransactionModalProps {
   isOpen: boolean;
   onRequestClose: () => void;
@@ -14,14 +15,28 @@ export function NewTransactionModal({
   isOpen,
   onRequestClose,
 }: newTransactionModalProps) {
+  const {createTransaction} = useContext(TransactionsContext);
   const [type,setType] = useState('deposit');
   const [title,setTitle] = useState('');
   const [category,setCategory] = useState('');
-  const [value,setValue] = useState(0);
-  const handleCreateNewTransaction = (e : FormEvent) => {
+  const [amount,setAmount] = useState(0);
+
+  
+  const handleCreateNewTransaction = async (e : FormEvent) => {
     e.preventDefault();
-    const data = {type,title,category,value};
-    api.post('/transactions',data);
+    await createTransaction({
+      type,
+      category,
+      title,
+      amount,
+    });
+
+    setType("deposit");
+    setTitle("");
+    setCategory("");
+    setAmount(0);
+
+    onRequestClose();
   };
 
 
@@ -42,7 +57,7 @@ export function NewTransactionModal({
       <Container onSubmit={handleCreateNewTransaction}>
         <h2>Cadastrar transação</h2>
         <input value={title} onChange={event => setTitle(event.target.value)} placeholder="Titulo" />
-        <input value={value} onChange={event => setValue(Number(event.target.value))} type="number" placeholder="Valor" />
+        <input value={amount} onChange={event => setAmount(Number(event.target.value))} type="number" placeholder="Valor" />
 
         <TransactionTypeContainer>
           <RadioBox activeColor="green" isActive={type === 'deposit'} type="button" onClick={()=>{setType("deposit")}}><img src={incomeImg} alt="Entrada" /><span>Entrada</span></RadioBox>
